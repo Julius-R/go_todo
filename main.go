@@ -1,21 +1,10 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import "go_todo/todos"
 
 func main() {
-	var tl []*todo
-	t, err := createTodo()
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
-	}
-
-	tl = append(tl, t)
-
-	updateTodo(tl)
-	tl[0].displayTodo()
+	t := todos.CreateList()
+	t.AddTodo()
+	t.AddTodo()
+	t.ViewTodos()
 }
