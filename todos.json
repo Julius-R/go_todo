@@ -1,0 +1,25 @@
+{
+ "todos": [
+  {
+   "id": "G-16",
+   "description": "Make a todo app",
+   "isCompleted": true,
+   "created": "2023-09-28T23:12:17.985794-06:00",
+   "lastUpdated": "2023-09-28T23:12:38.260893-06:00"
+  },
+  {
+   "id": "G-448",
+   "description": "Push code to github",
+   "isCompleted": false,
+   "created": "2023-09-28T23:12:54.975449-06:00",
+   "lastUpdated": "2023-09-28T23:12:54.975449-06:00"
+  },
+  {
+   "id": "G-256",
+   "description": "Make fake data for json file",
+   "isCompleted": false,
+   "created": "2023-09-28T23:13:09.114454-06:00",
+   "lastUpdated": "2023-09-28T23:13:09.114455-06:00"
+  }
+ ]
+}
