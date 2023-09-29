@@ -3,17 +3,20 @@ package todos
 import (
 	"errors"
 	"fmt"
+	"go_todo/helpers"
 	"time"
 )
 
-type todo struct {
-	id, description      string
-	isCompleted          bool
-	created, lastUpdated time.Time
+type Todo struct {
+	Id          string    `json:"id"`
+	Description string    `json:"description"`
+	IsCompleted bool      `json:"isCompleted"`
+	Created     time.Time `json:"created"`
+	LastUpdated time.Time `json:"lastUpdated"`
 }
 
 func getDescription() (string, error) {
-	desc := getString()
+	desc := helpers.GetString()
 
 	if len(desc) < 1 {
 		return "", errors.New("empty string")
@@ -22,14 +25,14 @@ func getDescription() (string, error) {
 	return desc, nil
 }
 
-func createTodo() (todo, error) {
+func createTodo() (Todo, error) {
 	fmt.Println("Enter description")
 	desc, err := getDescription()
 	if err != nil {
-		return todo{}, err
+		return Todo{}, err
 	}
 
-	return todo{
+	return Todo{
 		"",
 		desc,
 		false,
@@ -38,12 +41,51 @@ func createTodo() (todo, error) {
 	}, nil
 }
 
-func (t todo) displayTodo() {
-	fmt.Printf(`
-ID: %v
+func (t Todo) displayTodo() {
+	fmt.Printf(
+		`ID: %v
 Description: %v
 Completed: %v
 Created: %v
 Last Modified: %v
-`, t.id, t.description, t.isCompleted, t.created.Format(time.RFC822), t.lastUpdated.Format(time.RFC822))
+
+`, t.Id, t.Description, t.IsCompleted, t.Created.Format(time.RFC822), t.LastUpdated.Format(time.RFC822))
+}
+
+func loopTodos(tl *TodoList, loopMsg string) {
+	fmt.Printf("%v:\n\n", loopMsg)
+	for _, t := range tl.List {
+		t.displayTodo()
+	}
+}
+
+func editTodo(t *Todo, editType int) *Todo {
+	switch editType {
+	case 1:
+		{
+			desc, err := getDescription()
+			if err != nil {
+				fmt.Println(err)
+				return t
+			}
+
+			t.Description = desc
+			t.LastUpdated = time.Now().Local()
+			fmt.Println("Description updated")
+		}
+	case 2:
+		{
+			if t.IsCompleted {
+				fmt.Println("Already completed")
+			}
+			t.IsCompleted = true
+			t.LastUpdated = time.Now().Local()
+			fmt.Println("Marked completed")
+		}
+	case 3:
+		fmt.Println("Returning")
+	default:
+		fmt.Println("Invalid entry")
+	}
+	return t
 }

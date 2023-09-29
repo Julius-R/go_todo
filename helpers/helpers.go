@@ -1,4 +1,4 @@
-package todos
+package helpers
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func getString() string {
+func GetString() string {
 	scan := bufio.NewReader(os.Stdin)
 
 	value, err := scan.ReadString('\n')
@@ -20,9 +20,10 @@ func getString() string {
 	return strings.TrimSpace(value)
 }
 
-func getInt() int {
-	val, err := strconv.Atoi(getString())
+func GetInt() int {
+	val, err := strconv.Atoi(GetString())
 
+	// Todo: Gracefully handle this error
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
