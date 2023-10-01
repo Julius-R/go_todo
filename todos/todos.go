@@ -2,24 +2,31 @@ package todos
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"go_todo/helpers"
-	"math/rand"
+	"go_todo/inputGetters"
 	"os"
 	"strconv"
 )
 
-type TodoList struct {
+type Todos struct {
 	List map[string]*Todo `json:"list"`
 }
 
-func CreateList() TodoList {
-	t := TodoList{
+func CreateList() (*Todos, error) {
+	t := &Todos{
 		make(map[string]*Todo),
 	}
 	file, err := os.ReadFile("./todos.json")
 	if err != nil {
-		return t
+		if os.IsNotExist(err) {
+			emptyJSON := []byte(`{"todos": []}`)
+			if err := os.WriteFile("./todos.json", emptyJSON, 0644); err != nil {
+				return t, fmt.Errorf("error creating file: %w", err)
+			}
+			return t, nil
+		}
+		return t, fmt.Errorf("error occured while reading file: %w", err)
 	}
 
 	f := struct {
@@ -29,56 +36,62 @@ func CreateList() TodoList {
 	err = json.Unmarshal(file, &f)
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+		return t, fmt.Errorf("error occurred while unmarshaling JSON: %w", err)
 	}
 
 	for _, v := range f.Todos {
 		t.List[v.Id] = v
 	}
-	return t
+	return t, nil
 }
 
-func (tl *TodoList) AddTodo() {
+func (tl *Todos) AddTodo() error {
 	t, e := createTodo()
 	if e != nil {
-		fmt.Printf("error occured: %v\n", e)
-		return
+		return fmt.Errorf("error creating todo: %v", e)
 	}
-	v := "G-" + strconv.Itoa(rand.Intn(500))
+	v := "G-" + strconv.Itoa(len(tl.List)+1)
 	t.Id = v
 	tl.List[v] = &t
 	fmt.Print("Todo created\n\n")
+	return nil
 }
 
-func (tl *TodoList) ViewTodos() {
-	loopTodos(tl, "Todos")
+func (tl *Todos) ViewTodos(loopMsg string) {
+	fmt.Printf("%v:\n\n", loopMsg)
+	for _, t := range tl.List {
+		t.displayTodo()
+	}
 }
 
-func (tl *TodoList) UpdateTodo() {
-	loopTodos(tl, "Please select Todo")
+func (tl *Todos) UpdateTodo() error {
+	tl.ViewTodos("Please select Todo")
 	fmt.Print("Enter the id of your Todo G-")
 	todoId := "G-"
-	usrInt := helpers.GetInt()
+	usrInt, err := inputGetters.GetInt()
+	if err != nil {
+		return err
+	}
 	todoId = todoId + strconv.Itoa(usrInt)
-	// Validate that Todo exists
 	todo, ok := tl.List[todoId]
 	if !ok {
-		fmt.Println("invalid id provided")
-		return
+		return errors.New("invalid id provided")
 	}
-	//	choose update type
 	fmt.Print(`
 Please select from the following:
 [1] Update Description
 [2] Mark Complete
 [3] Cancel
 `)
-	userInt := helpers.GetInt()
-	todo = editTodo(todo, userInt)
+	userInt, err := inputGetters.GetInt()
+	if err != nil {
+		return err
+	}
+	todo, err = editTodo(todo, userInt)
+	return nil
 }
 
-func (tl *TodoList) makeSlice() []Todo {
+func (tl *Todos) makeSlice() []Todo {
 	var sl []Todo
 	for _, v := range tl.List {
 		sl = append(sl, *v)
@@ -86,17 +99,13 @@ func (tl *TodoList) makeSlice() []Todo {
 	return sl
 }
 
-func (tl *TodoList) SaveTodos() {
+func (tl *Todos) SaveTodos() error {
 	file, err := json.MarshalIndent(struct {
 		Todos []Todo `json:"todos"`
 	}{tl.makeSlice()}, "", " ")
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+		return err
 	}
-	err = os.WriteFile("./todos.json", file, 0644)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
-	}
+	return os.WriteFile("./todos.json", file, 0644)
+
 }

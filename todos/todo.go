@@ -3,7 +3,7 @@ package todos
 import (
 	"errors"
 	"fmt"
-	"go_todo/helpers"
+	"go_todo/inputGetters"
 	"time"
 )
 
@@ -15,21 +15,15 @@ type Todo struct {
 	LastUpdated time.Time `json:"lastUpdated"`
 }
 
-func getDescription() (string, error) {
-	desc := helpers.GetString()
-
-	if len(desc) < 1 {
-		return "", errors.New("empty string")
-	}
-
-	return desc, nil
-}
-
 func createTodo() (Todo, error) {
 	fmt.Println("Enter description")
-	desc, err := getDescription()
+	desc, err := inputGetters.GetString()
 	if err != nil {
-		return Todo{}, err
+		return Todo{}, fmt.Errorf("error with provided input, %v", err)
+	}
+
+	if len(desc) < 1 {
+		return Todo{}, errors.New("description must not be empty")
 	}
 
 	return Todo{
@@ -52,21 +46,13 @@ Last Modified: %v
 `, t.Id, t.Description, t.IsCompleted, t.Created.Format(time.RFC822), t.LastUpdated.Format(time.RFC822))
 }
 
-func loopTodos(tl *TodoList, loopMsg string) {
-	fmt.Printf("%v:\n\n", loopMsg)
-	for _, t := range tl.List {
-		t.displayTodo()
-	}
-}
-
-func editTodo(t *Todo, editType int) *Todo {
+func editTodo(t *Todo, editType int) (*Todo, error) {
 	switch editType {
 	case 1:
 		{
-			desc, err := getDescription()
+			desc, err := inputGetters.GetString()
 			if err != nil {
-				fmt.Println(err)
-				return t
+				return t, fmt.Errorf("error with provided input: %v", err)
 			}
 
 			t.Description = desc
@@ -87,5 +73,5 @@ func editTodo(t *Todo, editType int) *Todo {
 	default:
 		fmt.Println("Invalid entry")
 	}
-	return t
+	return t, nil
 }
